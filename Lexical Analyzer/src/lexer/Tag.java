@@ -42,7 +42,6 @@ public class Tag {
     UNARYPLUS = 288,
     DOUBLEDOT = 289,
     ENDMARKER = 290,
-    ENDOFFILE = 291,
-    SKIP = 292,
-    COMMENT = 293;
+    ENDOFFILE = 291;
+
 }

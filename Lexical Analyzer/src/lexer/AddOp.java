@@ -1,4 +1,4 @@
-package lexer;
+/*package lexer;
 
 public class AddOp extends Token {
     public String val;
@@ -10,7 +10,7 @@ public class AddOp extends Token {
         lexeme = s;
         tag = t;
     }
-    public void calcValAO(AddOp ao){
+   /* public void calcValAO(AddOp ao){
         if(ao== addition) {
             val = "1";
         }
@@ -31,3 +31,4 @@ public class AddOp extends Token {
 
 }
 
+        */

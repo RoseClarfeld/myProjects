@@ -4,7 +4,7 @@ public class Word extends Token {
     public final String lexeme;
     public final int tag;
     public Word(String s, int t) {
-        super(s, t);
+        super(t, s);
         lexeme = s;
         tag = t;
     }
@@ -14,4 +14,3 @@ public class Word extends Token {
 
 
 }
-

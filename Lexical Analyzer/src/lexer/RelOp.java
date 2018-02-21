@@ -1,20 +1,19 @@
-package lexer;
+/*package lexer;
 
 public class RelOp extends Token {
-    public final String lexeme;
     public final int tag;
     public String val;
 
     public RelOp(String s, int t) {
-        super( s, t);
-        lexeme = s;
+        super(s,t);
+        val = s;
         tag = t;
     }
-    public void calcValRO(RelOp ro){
-        if(ro == equal) {
+    public String calcValRO(String input){
+        if(input == "=") {
             val = "1";
         }
-        if (ro==notEqual) {
+        if (i==notEqual) {
             val = "2";
         }
         if (ro ==lessThan) {
@@ -29,8 +28,12 @@ public class RelOp extends Token {
         if(ro == greaterThanOrEqual){
             val="6";
         }
+        return val;
     }
-    String toStringRO() {
+    String toStringRO(RelOp ro) {
+        tag=ro;
+        val=calcValRO(ro);
+
         return tag + " "+val;
     }
     public static final RelOp
@@ -42,3 +45,4 @@ public class RelOp extends Token {
             greaterThanOrEqual = new RelOp(">=", Tag.RELOP);
 
 }
+*/

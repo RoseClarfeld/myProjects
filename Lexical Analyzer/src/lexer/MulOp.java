@@ -1,17 +1,17 @@
-
+/*
 package lexer;
 
 public class MulOp extends Token {
     public final String lexeme;
     public final int tag;
-    public String val;
+   /* public String val;
 
     public MulOp(String s, int t) {
         super(s, t);
         lexeme = s;
         tag = t;
     }
-    public void calcValMO(MulOp mo){
+    /*public void calcValMO(MulOp mo){
         if(mo == multiplication){
             val = "1";
         }
@@ -41,3 +41,4 @@ public class MulOp extends Token {
 
 }
 
+*/
