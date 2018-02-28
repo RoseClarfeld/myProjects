@@ -2,61 +2,117 @@ package lexer;
 
 import java.io.*;
 import java.util.*;
-
+import java.lang.Object.*;
 
 
 /**
  *
  */
 public class Tokenizer {
-    public Stack myStack = new Stack();
-    //private static int line = 1;
     public char currentChar;
     public char charPlusOne;
     public char charPlusTwo;
-    public int countE=0;
-    //private char realPeek = ' ';
-    public Token toke = new Token(0, " ");
+    public static String[] currLine;
+    public int countE = 0;
+    public static int stringLength = 0;
+    public int numLines = 0;
+    public static String cLine = " ";
+    public static int indexOfLineArray = 0;
     private static final String VALID_CHARS =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890" +
                     ".,;:<>/*[]+-=()}{\t ";
     private String Id;
     private String num;
-    private int countPoint =0;
+    private int countPoint = 0;
     private int lastToken = 0;
     private static InputStream is;
     //Hashtable to store reserved keywords
     private Hashtable ids = new Hashtable<String, Integer>();
 
     private BufferedReader br;
-
+    public void calcNumLines(File file)throws IOException{
+        // getting the number of lines to put into the array
+        FileReader fr = new FileReader(file);
+        BufferedReader br = new BufferedReader(fr);
+        String line = null;
+        while ((line = br.readLine())!=null) {
+            numLines++;
+        }
+        br.close();
+    }
     public Tokenizer(File file) throws IOException {
-
-        // set up buffered reader
-
-        //try{
-            is = new FileInputStream(file);
-            Reader reader = new InputStreamReader(is);
-            br = new BufferedReader(reader);
-
-        //}catch(FileNotFoundException ex) {
-        //    LexicalError.FileError();
-        //}
+        calcNumLines(file);
+        //new buffered reader
+        currLine = new String[numLines];
+        FileReader fRead = new FileReader(file);
+        BufferedReader bRead = new BufferedReader(fRead);
+        //entering all the lines into an array
+        String lineRead;
+        for (indexOfLineArray = 0; indexOfLineArray < numLines; indexOfLineArray++) {
+            lineRead = bRead.readLine();
+            currLine[indexOfLineArray] = lineRead;
+        }
+        indexOfLineArray = 0;
+        stringLength = 0;
         currentChar = getNextChar();
+        if (stringLength == (cLine.length())) {
+            indexOfLineArray++;
+            cLine = currLine[indexOfLineArray];
+            stringLength = 0;
+        }
         charPlusOne = getNextChar();
+        if (stringLength == (cLine.length())) {
+            indexOfLineArray++;
+            cLine = currLine[indexOfLineArray];
+            stringLength = 0;
+        }
         charPlusTwo = getNextChar();
-        getNextToken();
     }
 
     private char getNextChar() throws IOException {
-        int read;
+        //cLine is a string that the current line goes into
+        cLine = currLine[indexOfLineArray];
         char c = ' ';
-        if((read =br.read()) != -1) {
-            c = (char)read;
+        if (cLine.isEmpty()) {
+            indexOfLineArray++;
+            cLine = currLine[indexOfLineArray];
+            stringLength = 0;
+            c = cLine.charAt(0);
+            // while (c == '\n' || c == '\r') {
+            //   indexOfLineArray++;
+            // cLine = currLine[indexOfLineArray];
+            // stringLength = 0;
+            // c = cLine.charAt(0);
+            return c;
+        } else {
+            c = cLine.charAt(stringLength);
+            stringLength++;
+            /*if(cLine.charAt((stringLength))=='\n'){
+                indexOfLineArray++;
+                cLine=currLine[indexOfLineArray];
+                stringLength=0;
+                c=cLine.charAt(0);*/
+
+            return c;
         }
-        return c;
     }
 
+    /*
+        c =cLine.charAt((stringLength));
+    //if cLine is empty
+        if (c=='\n'||c=='\r'){
+            //go to the next line
+            indexOfLineArray++;
+            //cline is updated
+            cLine = currLine[indexOfLineArray];
+            //
+            stringLength=0;
+            c=cLine.charAt((stringLength));
+        } else {
+            stringLength++;
+        }
+        return c;
+    }*/
 
     //reserving keywords in the hashtable
     private void reserve(Word t) {
@@ -66,7 +122,7 @@ public class Tokenizer {
     //reserving keywords to put in the hashtable
     public void Lex() {
         reserve(new Word("PROGRAM", Tag.PROGRAM));
-        reserve(new Word("BEGIN", Tag.BEGIN ));
+        reserve(new Word("BEGIN", Tag.BEGIN));
         reserve(new Word("END", Tag.END));
         reserve(new Word("VAR", Tag.VAR));
         reserve(new Word("FUNCTION", Tag.FUNCTION));
@@ -82,7 +138,7 @@ public class Tokenizer {
         reserve(new Word("WHILE", Tag.WHILE));
         reserve(new Word("DO", Tag.DO));
         reserve(new Word("NOT", Tag.NOT));
-        reserve(new Word( "IDENTIFIER", Tag.IDENTIFIER));
+        reserve(new Word("IDENTIFIER", Tag.IDENTIFIER));
         reserve(new Word("INTCONSTANT", Tag.INTCONSTANT));
         reserve(new Word("REALCONSTANT", Tag.REALCONSTANT));
         reserve(new Word("RELOP", Tag.RELOP));
@@ -117,34 +173,36 @@ public class Tokenizer {
         }
         return false;
     }
-    private Boolean isLetter(char c){
+
+    private Boolean isLetter(char c) {
         String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         int i;
-        for(i=0; i<alphabet.length(); i++){
-            if(c ==alphabet.charAt(i)){
+        for (i = 0; i < alphabet.length(); i++) {
+            if (c == alphabet.charAt(i)) {
                 return true;
             }
         }
         return false;
     }
 
-    private Boolean isNumber(char c){
+    private Boolean isNumber(char c) {
         String numbers = "1234567890";
         int i;
-        for(i=0; i<numbers.length(); i++){
+        for (i = 0; i < numbers.length(); i++) {
             char a = numbers.charAt(i);
-            if (c==a){
+            if (c == a) {
                 return true;
             }
         }
         return false;
     }
-    private Boolean isSymbol(char c){
-        String symbols =".,;:<>/*[]+-=()}{\t ";
+
+    private Boolean isSymbol(char c) {
+        String symbols = ".,;:<>/*[]+-=()}{\t ";
         int i;
-        for(i=0; i<symbols.length(); i++){
+        for (i = 0; i < symbols.length(); i++) {
             char a = symbols.charAt(i);
-            if (c==a){
+            if (c == a) {
                 return true;
             }
         }
@@ -152,32 +210,43 @@ public class Tokenizer {
     }
 
 
-public  boolean isWhiteSpace(char c){
-    if(currentChar == ' ' || currentChar == '\t' || currentChar == '\n' || currentChar == '\r'||currentChar=='\n') {
-        return true;
+    public boolean isWhiteSpace(char c) {
+        if (Character.isWhitespace(c)) {
+            return true;
+        }
+        return false;
     }
-    return false;
-}
 
     public Token getNextToken() throws IOException {
-        //
-
+        String str = Character.toString(currentChar);
         if (isValid(currentChar)) {
             if (!isWhiteSpace(currentChar)) {
-
+                //{comment
                 if (lastToken == Tag.RIGHTBRACKET) {
-                    while (currentChar != '}' && currentChar != '\u0000') {
+
+                    while (currentChar != '}' && (!str.isEmpty())) {
+                        //if reached end of string
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
                     }
-                    if (currentChar == '\u0000') {
-                        LexicalError.BadComment();
+                    if (str.isEmpty()) {
                         setLastToken(Tag.ENDOFFILE);
-                        return null;
+                        LexicalError.BadComment(indexOfLineArray, currentChar);
+                        return (new Token(lastToken, ""));
                     }
-
+                    //must equal leftbracket
                     setLastToken(Tag.LEFTBRACKET);
+                    if (stringLength == (cLine.length())) {
+                        indexOfLineArray++;
+                        cLine = currLine[indexOfLineArray];
+                        stringLength = 0;
+                    }
                     currentChar = charPlusOne;
                     charPlusOne = charPlusTwo;
                     charPlusTwo = getNextChar();
@@ -186,14 +255,24 @@ public  boolean isWhiteSpace(char c){
                 switch (currentChar) {
                     case '=':
                         setLastToken(Tag.RELOP);
+                       if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
+
                         return (new Token(lastToken, "1"));
                     case '<':
                         //<>
                         if (charPlusOne == '>') {
-                            setLastToken(Tag.RELOP);
+                            if (stringLength == (cLine.length())) {
+                                indexOfLineArray++;
+                                cLine = currLine[indexOfLineArray];
+                                stringLength = 0;
+                            }
                             currentChar = charPlusOne;
                             charPlusOne = charPlusTwo;
                             charPlusTwo = getNextChar();
@@ -202,6 +281,11 @@ public  boolean isWhiteSpace(char c){
                         //<=
                         if (charPlusOne == '=') {
                             setLastToken(Tag.RELOP);
+                            if (stringLength == (cLine.length())) {
+                                indexOfLineArray++;
+                                cLine = currLine[indexOfLineArray];
+                                stringLength = 0;
+                            }
                             currentChar = charPlusOne;
                             charPlusOne = charPlusTwo;
                             charPlusTwo = getNextChar();
@@ -209,6 +293,11 @@ public  boolean isWhiteSpace(char c){
                         }
                         //<
                         setLastToken(Tag.RELOP);
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
@@ -218,12 +307,22 @@ public  boolean isWhiteSpace(char c){
                         //>=
                         if (charPlusOne == '=') {
                             setLastToken(Tag.RELOP);
+                            if (stringLength == (cLine.length())) {
+                                indexOfLineArray++;
+                                cLine = currLine[indexOfLineArray];
+                                stringLength = 0;
+                            }
                             currentChar = charPlusOne;
                             charPlusOne = charPlusTwo;
                             charPlusTwo = getNextChar();
                             return (new Token(lastToken, "6"));
                         }
                         setLastToken(Tag.RELOP);
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
@@ -232,29 +331,48 @@ public  boolean isWhiteSpace(char c){
                         if (getLastToken() == Tag.RIGHTPAREN || getLastToken() == Tag.RIGHTBRACKET || getLastToken() == Tag.IDENTIFIER || getLastToken() == Tag.INTCONSTANT || getLastToken() == Tag.REALCONSTANT) {
 
                             setLastToken(Tag.ADDOP);
+                            if (stringLength == (cLine.length())) {
+                                indexOfLineArray++;
+                                cLine = currLine[indexOfLineArray];
+                                stringLength = 0;
+                            }
                             currentChar = charPlusOne;
                             charPlusOne = charPlusTwo;
                             charPlusTwo = getNextChar();
                             return (new Token(lastToken, "1"));
                         } else {
                             setLastToken(Tag.UNARYPLUS);
+                            if (stringLength == (cLine.length())) {
+                                indexOfLineArray++;
+                                cLine = currLine[indexOfLineArray];
+                                stringLength = 0;
+                            }
                             currentChar = charPlusOne;
                             charPlusOne = charPlusTwo;
                             charPlusTwo = getNextChar();
                             return (new Token(lastToken, ""));
                         }
 
-
                     case '-':
                         if (getLastToken() == Tag.RIGHTPAREN || getLastToken() == Tag.RIGHTBRACKET || getLastToken() == Tag.IDENTIFIER || getLastToken() == Tag.INTCONSTANT || getLastToken() == Tag.REALCONSTANT) {
 
                             setLastToken(Tag.ADDOP);
+                            if (stringLength == (cLine.length())) {
+                                indexOfLineArray++;
+                                cLine = currLine[indexOfLineArray];
+                                stringLength = 0;
+                            }
                             currentChar = charPlusOne;
                             charPlusOne = charPlusTwo;
                             charPlusTwo = getNextChar();
                             return (new Token(lastToken, "2"));
                         } else {
                             setLastToken(Tag.UNARYMINUS);
+                            if (stringLength == (cLine.length())) {
+                                indexOfLineArray++;
+                                cLine = currLine[indexOfLineArray];
+                                stringLength = 0;
+                            }
                             currentChar = charPlusOne;
                             charPlusOne = charPlusTwo;
                             charPlusTwo = getNextChar();
@@ -264,6 +382,11 @@ public  boolean isWhiteSpace(char c){
                     case '*':
 
                         setLastToken(Tag.MULOP);
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
@@ -272,6 +395,11 @@ public  boolean isWhiteSpace(char c){
                     case '/':
 
                         setLastToken(Tag.MULOP);
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
@@ -286,6 +414,11 @@ public  boolean isWhiteSpace(char c){
                     case '}':
 
                         setLastToken(Tag.LEFTBRACKET);
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
@@ -293,6 +426,11 @@ public  boolean isWhiteSpace(char c){
                     case ',':
 
                         setLastToken(Tag.COMMA);
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
@@ -301,6 +439,11 @@ public  boolean isWhiteSpace(char c){
                     case ';':
 
                         setLastToken(Tag.SEMICOLON);
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
@@ -309,6 +452,11 @@ public  boolean isWhiteSpace(char c){
                     case ':':
 
                         setLastToken(Tag.COLON);
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
@@ -316,6 +464,11 @@ public  boolean isWhiteSpace(char c){
                     case '(':
 
                         setLastToken(Tag.RIGHTPAREN);
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
@@ -323,103 +476,150 @@ public  boolean isWhiteSpace(char c){
                     case ')':
 
                         setLastToken(Tag.LEFTPAREN);
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
                         return (new Token(lastToken, ""));
-                    //need to deal with periods and stuff
                     case '.':
                         if (charPlusOne == '.') {
-
                             setLastToken(Tag.DOUBLEDOT);
+                            if (stringLength == (cLine.length())) {
+                                indexOfLineArray++;
+                                cLine = currLine[indexOfLineArray];
+                                stringLength = 0;
+                            }
                             currentChar = charPlusOne;
                             charPlusOne = charPlusTwo;
                             charPlusTwo = getNextChar();
                             return (new Token(lastToken, ""));
                         }
-
                         setLastToken(Tag.ENDMARKER);
-                        currentChar = charPlusOne;
-                        charPlusOne = charPlusTwo;
-                        charPlusTwo = getNextChar();
-                        return (new Token(lastToken, ""));
-
-                    case '\u0000':
-
-                        setLastToken(Tag.ENDOFFILE);
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
                         return (new Token(lastToken, ""));
                 }
-                //if peek is an ID
+
+
                 if (isLetter(currentChar)) {
                     Id = " ";
                     while (!isWhiteSpace(currentChar) && !isSymbol(currentChar) && Id.length() < 250) {
+                        //either number or letter
                         if (isNumber(currentChar)) {
                             Id = Id + currentChar;
                             Id = Id.toUpperCase();
+                            if (stringLength == (cLine.length())) {
+                                indexOfLineArray++;
+                                cLine = currLine[indexOfLineArray];
+                                stringLength = 0;
+                            }
                             currentChar = charPlusOne;
                             charPlusOne = charPlusTwo;
                             charPlusTwo = getNextChar();
-                            int contender = 0;
+                            //current char is not a number
                         }
-
                         Id = Id + currentChar;
                         Id = Id.toUpperCase();
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
                     }
-                    if (ids.containsKey(Id)) {
+                            //must have read a full id
+                            if (ids.containsKey(Id)) {
+                                if (Id == "OR") {
+                                    setLastToken(Tag.ADDOP);
+                                    if (stringLength == (cLine.length())) {
+                                        indexOfLineArray++;
+                                        cLine = currLine[indexOfLineArray];
+                                        stringLength = 0;
+                                    }
+                                    currentChar = charPlusOne;
+                                    charPlusOne = charPlusTwo;
+                                    charPlusTwo = getNextChar();
+                                    return (new Token(lastToken, "3"));
+                                }
+                                if (Id == "DIV") {
+                                    setLastToken(Tag.MULOP);
+                                    if (stringLength == (cLine.length())) {
+                                        indexOfLineArray++;
+                                        cLine = currLine[indexOfLineArray];
+                                        stringLength = 0;
+                                    }
+                                    currentChar = charPlusOne;
+                                    charPlusOne = charPlusTwo;
+                                    charPlusTwo = getNextChar();
+                                    return (new Token(lastToken, "3"));
+                                }
+                                if (Id == "MOD") {
+                                    setLastToken(Tag.MULOP);
+                                    if (stringLength == (cLine.length())) {
+                                        indexOfLineArray++;
+                                        cLine = currLine[indexOfLineArray];
+                                        stringLength = 0;
+                                    }
+                                    currentChar = charPlusOne;
+                                    charPlusOne = charPlusTwo;
+                                    charPlusTwo = getNextChar();
+                                    return (new Token(lastToken, "4"));
+                                }
+                                if (Id == "AND") {
+                                    setLastToken(Tag.MULOP);
+                                    if (stringLength == (cLine.length())) {
+                                        indexOfLineArray++;
+                                        cLine = currLine[indexOfLineArray];
+                                        stringLength = 0;
+                                    }
+                                    currentChar = charPlusOne;
+                                    charPlusOne = charPlusTwo;
+                                    charPlusTwo = getNextChar();
+                                    return (new Token(lastToken, "5"));
+                                }
+                                setLastToken(Tag.IDENTIFIER);
+                                if (stringLength == (cLine.length())) {
+                                    indexOfLineArray++;
+                                    cLine = currLine[indexOfLineArray];
+                                    stringLength = 0;
+                                }
+                                currentChar = charPlusOne;
+                                charPlusOne = charPlusTwo;
+                                charPlusTwo = getNextChar();
+                                return (new Token(lastToken, Id));
 
-                        if (Id == "OR") {
-                            setLastToken(Tag.ADDOP);
-                            currentChar = charPlusOne;
-                            charPlusOne = charPlusTwo;
-                            charPlusTwo = getNextChar();
-                            return (new Token(lastToken, "3"));
-                        }
-                        if (Id == "DIV") {
-                            setLastToken(Tag.MULOP);
-                            currentChar = charPlusOne;
-                            charPlusOne = charPlusTwo;
-                            charPlusTwo = getNextChar();
-                            return (new Token(lastToken, "3"));
-                        }
-                        if (Id == "MOD") {
-                            setLastToken(Tag.MULOP);
-                            currentChar = charPlusOne;
-                            charPlusOne = charPlusTwo;
-                            charPlusTwo = getNextChar();
-                            return (new Token(lastToken, "4"));
-                        }
-                        if (Id == "AND") {
-                            setLastToken(Tag.MULOP);
-                            currentChar = charPlusOne;
-                            charPlusOne = charPlusTwo;
-                            charPlusTwo = getNextChar();
-                            return (new Token(lastToken, "5"));
-                        }
-                        setLastToken(Tag.IDENTIFIER);
-                        currentChar = charPlusOne;
-                        charPlusOne = charPlusTwo;
-                        charPlusTwo = getNextChar();
-                        return (new Token(lastToken, Id));
+                            }
+                            if (Id.length() >= 250) {
+                                LexicalError.TooLongID(indexOfLineArray, currentChar);
+                                return (new Token(lastToken, ""));
+                            } else {
+                                reserve(new Word(Id, ids.size() + 1));
 
-                    } else if (Id.length() >= 250) {
-                        LexicalError.TooLongID();
-                        return null;
-                    } else {
-                        reserve(new Word(Id, ids.size() + 1));
+                                setLastToken(Tag.IDENTIFIER);
+                                if (stringLength == (cLine.length())) {
+                                    indexOfLineArray++;
+                                    cLine = currLine[indexOfLineArray];
+                                    stringLength = 0;
+                                }
+                                currentChar = charPlusOne;
+                                charPlusOne = charPlusTwo;
+                                charPlusTwo = getNextChar();
+                                return (new Token(lastToken, Id));
+                            }
+                        }
 
-                        setLastToken(Tag.IDENTIFIER);
-                        currentChar = charPlusOne;
-                        charPlusOne = charPlusTwo;
-                        charPlusTwo = getNextChar();
-                        return (new Token(lastToken, Id));
-                    }
-                }
 
 
                 //if peek is a number
@@ -432,12 +632,23 @@ public  boolean isWhiteSpace(char c){
                                 if (countPoint == 1) {
 
                                     setLastToken(Tag.REALCONSTANT);
+                                    if (stringLength == (cLine.length())) {
+                                        indexOfLineArray++;
+                                        cLine = currLine[indexOfLineArray];
+                                        stringLength = 0;
+                                    }
                                     currentChar = charPlusOne;
                                     charPlusOne = charPlusTwo;
                                     charPlusTwo = getNextChar();
                                     return (new Token(lastToken, num));
                                 }
                                 setLastToken(Tag.INTCONSTANT);
+                                if (stringLength == (cLine.length())) {
+                                    indexOfLineArray++;
+                                    cLine = currLine[indexOfLineArray];
+                                    stringLength = 0;
+                                }
+
                                 currentChar = charPlusOne;
                                 charPlusOne = charPlusTwo;
                                 charPlusTwo = getNextChar();
@@ -449,12 +660,24 @@ public  boolean isWhiteSpace(char c){
                                 if (countPoint == 1) {
 
                                     setLastToken(Tag.REALCONSTANT);
+                                    if (stringLength == (cLine.length())) {
+                                        indexOfLineArray++;
+                                        cLine = currLine[indexOfLineArray];
+                                        stringLength = 0;
+                                    }
+
                                     currentChar = charPlusOne;
                                     charPlusOne = charPlusTwo;
                                     charPlusTwo = getNextChar();
                                     return (new Token(lastToken, num));
                                 }
                                 setLastToken(Tag.INTCONSTANT);
+                                if (stringLength == (cLine.length())) {
+                                    indexOfLineArray++;
+                                    cLine = currLine[indexOfLineArray];
+                                    stringLength = 0;
+                                }
+
                                 currentChar = charPlusOne;
                                 charPlusOne = charPlusTwo;
                                 charPlusTwo = getNextChar();
@@ -466,72 +689,13 @@ public  boolean isWhiteSpace(char c){
                                 if (countPoint == 1) {
 
                                     setLastToken(Tag.REALCONSTANT);
-                                    currentChar = charPlusOne;
-                                    charPlusOne = charPlusTwo;
-                                    charPlusTwo = getNextChar();
-                                    return (new Token(lastToken, num));
+                                    if (stringLength == (cLine.length())) {
+                                        indexOfLineArray++;
+                                        cLine = currLine[indexOfLineArray];
+                                        stringLength = 0;
+                                    }
                                 }
 
-                                setLastToken(Tag.INTCONSTANT);
-                                currentChar = charPlusOne;
-                                charPlusOne = charPlusTwo;
-                                charPlusTwo = getNextChar();
-                                return (new Token(lastToken, num));
-                            }
-                            countE++;
-                            num = num + currentChar;
-                            currentChar = charPlusOne;
-                            charPlusOne = charPlusTwo;
-                            charPlusTwo = getNextChar();
-                        }
-                        if (isSymbol(currentChar)) {
-                            if (currentChar != '.') {
-                                if (countPoint == 1) {
-
-                                    setLastToken(Tag.REALCONSTANT);
-                                    currentChar = charPlusOne;
-                                    charPlusOne = charPlusTwo;
-                                    charPlusTwo = getNextChar();
-                                    return (new Token(lastToken, num));
-
-                                }
-
-                                setLastToken(Tag.INTCONSTANT);
-                                currentChar = charPlusOne;
-                                charPlusOne = charPlusTwo;
-                                charPlusTwo = getNextChar();
-                                return (new Token(lastToken, num));
-                            }
-                            //so currChar=.
-                            if (countPoint == 1) {
-
-                                setLastToken(Tag.REALCONSTANT);
-                                currentChar = charPlusOne;
-                                charPlusOne = charPlusTwo;
-                                charPlusTwo = getNextChar();
-                                return (new Token(lastToken, num));
-                            }
-                            //not already a dot
-                            if (charPlusOne == '.') {
-
-                                setLastToken(Tag.DOUBLEDOT);
-                                currentChar = charPlusOne;
-                                charPlusOne = charPlusTwo;
-                                charPlusTwo = getNextChar();
-                                return (new Token(lastToken, ""));
-                            }
-                            //so char is a dot but just normal
-                            num = num + currentChar;
-                            currentChar = charPlusOne;
-                            charPlusOne = charPlusTwo;
-                            charPlusTwo = getNextChar();
-                        }
-                        //current char is a number
-                        if (charPlusOne == '.' && !isNumber(charPlusTwo)) {
-                            num = num + currentChar;
-                            if (countPoint == 1) {
-
-                                setLastToken(Tag.REALCONSTANT);
                                 currentChar = charPlusOne;
                                 charPlusOne = charPlusTwo;
                                 charPlusTwo = getNextChar();
@@ -539,40 +703,180 @@ public  boolean isWhiteSpace(char c){
                             }
 
                             setLastToken(Tag.INTCONSTANT);
-                            currentChar = charPlusOne;
-                            charPlusOne = charPlusTwo;
-                            charPlusTwo = getNextChar();
-                            return (new Token(lastToken, num));
-                        }
-                        if ((charPlusOne == 'e' || charPlusOne == 'E') && !isNumber(charPlusTwo)) {
-                            num = num + currentChar;
-                            if (countPoint == 1) {
-
-                                setLastToken(Tag.REALCONSTANT);
-                                currentChar = charPlusOne;
-                                charPlusOne = charPlusTwo;
-                                charPlusTwo = getNextChar();
-                                return (new Token(lastToken, num));
+                            if (stringLength == (cLine.length())) {
+                                indexOfLineArray++;
+                                cLine = currLine[indexOfLineArray];
+                                stringLength = 0;
                             }
-
-                            setLastToken(Tag.INTCONSTANT);
                             currentChar = charPlusOne;
                             charPlusOne = charPlusTwo;
                             charPlusTwo = getNextChar();
                             return (new Token(lastToken, num));
                         }
+                        countE++;
                         num = num + currentChar;
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
                     }
+                    if (isSymbol(currentChar)) {
+                        if (currentChar != '.') {
+                            if (countPoint == 1) {
+
+                                setLastToken(Tag.REALCONSTANT);
+                                if (stringLength == (cLine.length())) {
+                                    indexOfLineArray++;
+                                    cLine = currLine[indexOfLineArray];
+                                    stringLength = 0;
+                                }
+
+                                currentChar = charPlusOne;
+                                charPlusOne = charPlusTwo;
+                                charPlusTwo = getNextChar();
+                                return (new Token(lastToken, num));
+
+                            }
+
+                            setLastToken(Tag.INTCONSTANT);
+                            if (stringLength == (cLine.length())) {
+                                indexOfLineArray++;
+                                cLine = currLine[indexOfLineArray];
+                                stringLength = 0;
+                            }
+
+                            currentChar = charPlusOne;
+                            charPlusOne = charPlusTwo;
+                            charPlusTwo = getNextChar();
+                            return (new Token(lastToken, num));
+                        }
+                        //so currChar=.
+                        if (countPoint == 1) {
+
+                            setLastToken(Tag.REALCONSTANT);
+                            if (stringLength == (cLine.length())) {
+                                indexOfLineArray++;
+                                cLine = currLine[indexOfLineArray];
+                                stringLength = 0;
+                            }
+
+                            currentChar = charPlusOne;
+                            charPlusOne = charPlusTwo;
+                            charPlusTwo = getNextChar();
+                            return (new Token(lastToken, num));
+                        }
+                        //not already a dot
+                        if (charPlusOne == '.') {
+
+                            setLastToken(Tag.DOUBLEDOT);
+                            if (stringLength == (cLine.length())) {
+                                indexOfLineArray++;
+                                cLine = currLine[indexOfLineArray];
+                                stringLength = 0;
+                            }
+
+                            currentChar = charPlusOne;
+                            charPlusOne = charPlusTwo;
+                            charPlusTwo = getNextChar();
+                            return (new Token(lastToken, ""));
+                        }
+                        //so char is a dot but just normal
+                        num = num + currentChar;
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
+
+                        currentChar = charPlusOne;
+                        charPlusOne = charPlusTwo;
+                        charPlusTwo = getNextChar();
+                    }
+                    //current char is a number
+                    if (charPlusOne == '.' && !isNumber(charPlusTwo)) {
+                        num = num + currentChar;
+                        if (countPoint == 1) {
+
+                            setLastToken(Tag.REALCONSTANT);
+                            if (stringLength == (cLine.length())) {
+                                indexOfLineArray++;
+                                cLine = currLine[indexOfLineArray];
+                                stringLength = 0;
+                            }
+
+                            currentChar = charPlusOne;
+                            charPlusOne = charPlusTwo;
+                            charPlusTwo = getNextChar();
+                            return (new Token(lastToken, num));
+                        }
+
+                        setLastToken(Tag.INTCONSTANT);
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
+
+                        currentChar = charPlusOne;
+                        charPlusOne = charPlusTwo;
+                        charPlusTwo = getNextChar();
+                        return (new Token(lastToken, num));
+                    }
+                    if ((charPlusOne == 'e' || charPlusOne == 'E') && !isNumber(charPlusTwo)) {
+                        num = num + currentChar;
+                        if (countPoint == 1) {
+
+                            setLastToken(Tag.REALCONSTANT);
+                            if (stringLength == (cLine.length())) {
+                                indexOfLineArray++;
+                                cLine = currLine[indexOfLineArray];
+                                stringLength = 0;
+                            }
+
+                            currentChar = charPlusOne;
+                            charPlusOne = charPlusTwo;
+                            charPlusTwo = getNextChar();
+                            return (new Token(lastToken, num));
+                        }
+
+                        setLastToken(Tag.INTCONSTANT);
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
+                        currentChar = charPlusOne;
+                        charPlusOne = charPlusTwo;
+                        charPlusTwo = getNextChar();
+                        return (new Token(lastToken, num));
+                    }
+                    num = num + currentChar;
+                    if (stringLength == (cLine.length())) {
+                        indexOfLineArray++;
+                        cLine = currLine[indexOfLineArray];
+                        stringLength = 0;
+                    }
+                    currentChar = charPlusOne;
+                    charPlusOne = charPlusTwo;
+                    charPlusTwo = getNextChar();
+
                     if (num.length() >= 250) {
-                        LexicalError.TooLongID();
-                        return null;
+                        LexicalError.TooLongID(indexOfLineArray, currentChar);
+                        //
+                        return (new Token(lastToken, ""));
                     }
                     if (countPoint == 0) {
 
                         setLastToken(Tag.INTCONSTANT);
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
@@ -580,36 +884,83 @@ public  boolean isWhiteSpace(char c){
                     } else {
 
                         setLastToken(Tag.INTCONSTANT);
+                        if (stringLength == (cLine.length())) {
+                            indexOfLineArray++;
+                            cLine = currLine[indexOfLineArray];
+                            stringLength = 0;
+                        }
                         currentChar = charPlusOne;
                         charPlusOne = charPlusTwo;
                         charPlusTwo = getNextChar();
                         return (new Token(lastToken, num));
 
                     }
-                }
 
+
+                }
+                if (stringLength == (cLine.length())) {
+                    indexOfLineArray++;
+                    cLine = currLine[indexOfLineArray];
+                    stringLength = 0;
+                }
+                    currentChar = charPlusOne;
+                    charPlusOne = charPlusTwo;
+                    charPlusTwo = getNextChar();
+                }
+                    /*
+            if(str.isEmpty()){
+                setLastToken(Tag.ENDOFFILE);
+                return(new Token(lastToken, ""));
+            }
+            if(currentChar =='\n') {
+                indexOfLineArray++;
+                cLine = currLine[indexOfLineArray];
+                stringLength = 0;
+                currentChar = charPlusOne;
+                charPlusOne = getNextChar();
+                charPlusTwo = getNextChar();
+
+            } else{
+                if (stringLength == (cLine.length())) {
+                    indexOfLineArray++;
+                    cLine = currLine[indexOfLineArray];
+                    stringLength = 0;
+                }
+                currentChar=charPlusOne;
+                charPlusOne=charPlusTwo;
+                charPlusTwo=getNextChar();
+            }*/
+            if (stringLength == (cLine.length())) {
+                indexOfLineArray++;
+                cLine = currLine[indexOfLineArray];
+                stringLength = 0;
             }currentChar = charPlusOne;
             charPlusOne = charPlusTwo;
             charPlusTwo = getNextChar();
+                return (new Token(lastToken, ""));
+
         }
-
-            //invalid character
-            LexicalError.InvalidInput();
-
-            currentChar = charPlusOne;
-            charPlusOne = charPlusTwo;
-            charPlusTwo = getNextChar();
-            setLastToken(Tag.ENDOFFILE);
-            return null;
-        }
+            //  indexOfLineArray++;
+            // cLine = currLine[indexOfLineArray];
+            //stringLength = 0;
+            //currentChar = charPlusOne;
+            //charPlusOne = getNextChar();
+            //charPlusTwo = getNextChar();
+            LexicalError.InvalidInput(indexOfLineArray, currentChar);
+            return (new Token(lastToken, ""));
 
 
+
+    }
 
 
     public void setLastToken(int tag) {
+
         lastToken = tag;
     }
+
     public int getLastToken() {
+
         return lastToken;
     }
 }

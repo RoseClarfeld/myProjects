@@ -5,7 +5,8 @@ package lexer;
 public class Token {
     public String tokenType = " ";
     public String value = " ";
-    public String[] tokens = {"PROGRAM",
+    public String[] tokens = new String[]{
+            "PROGRAM",
             "BEGIN",
             "END",
             "VAR",
@@ -46,7 +47,8 @@ public class Token {
             "UNARYPLUS",
             "DOUBLEDOT",
             "ENDMARKER",
-            "ENDOFFILE"
+            "ENDOFFILE",
+
     };
 
 
@@ -57,12 +59,12 @@ public class Token {
 
     public String tagToString(int tag) {
         int NTag = tag - 256;
-        for (int i = 0; i < 36; i++) {
+        for (int i = 0; i < 37; i++) {
             if (NTag == i) {
                 return tokens[i];
             }
         }
-        return null;
+        return tokens[1];
     }
 }
 

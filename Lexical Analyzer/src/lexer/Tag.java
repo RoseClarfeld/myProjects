@@ -1,4 +1,7 @@
 package lexer;
+
+import com.sun.org.apache.xpath.internal.WhitespaceStrippingElementMatcher;
+
 public class Tag {
     public static final int
     PROGRAM = 256,
